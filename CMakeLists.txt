@@ -8,7 +8,7 @@ set(CMAKE_CXX_EXTENSIONS        OFF)
 if(MSVC)
     add_compile_options(/W4 /permissive-)
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic)
+    add_compile_options(-Wall -Wextra -Wpedantic -Wimplicit-fallthrough)
 endif()
 
 # -----------------------------------------------------------------------------
@@ -18,66 +18,42 @@ set(EXAMPLES
     01_grundlagen
     02_stl_grundlagen
     03_stl_uebung
-    04_funktionen
+    #04_funktionen
     05_vererbung
-    06_speicher_raii
+    #06_speicher_raii
+    #06b_raii_uebung
     07_smart_pointer
+    #07b_smart_pointer_uebung
     08_templates
     09_exceptions
-    10_modern_cpp
+    #10_modern_cpp
     11_multithreading
-    backup_a_move
-    backup_b_spezialisierung
-    backup_d_threading_traps
+    #backup_a_move
+    #backup_b_spezialisierung
+    #backup_d_threading_traps
 )
 
 foreach(example ${EXAMPLES})
-    add_executable(${example} ${example}.cpp)
+
+add_executable(${example} ${example}.cpp)
 endforeach()
 
-# Multithreading-Targets — portable Threads-Abstraktion:
-#   Linux/macOS  -> linkt pthread (-pthread-Flag wird gesetzt)
-#   Windows MSVC -> No-op, std::thread nutzt direkt die Win32-API
-#   Windows MinGW -> linkt winpthread falls vorhanden
-find_package(Threads REQUIRED)
-target_link_libraries(11_multithreading       PRIVATE Threads::Threads)
-target_link_libraries(backup_d_threading_traps PRIVATE Threads::Threads)
+# -----------------------------------------------------------------------------
+# Qt-Beispiele — brauchen Qt6 (Core, Concurrent, Test) + AUTOMOC (wegen Q_OBJECT).
+# -----------------------------------------------------------------------------
+find_package(Qt6 REQUIRED COMPONENTS Core Concurrent Test)
+qt_standard_project_setup()
 
-# -----------------------------------------------------------------------------
-# Sanitizer-Beispiel — separat, da hier Laufzeitfehler ABSICHTLICH auftreten
-# Build: cmake --build build --target backup_c_sanitizers
-# Run  : ./build/backup_c_sanitizers  (ASan-Report erscheint)
-# -----------------------------------------------------------------------------
-add_executable(backup_c_sanitizers backup_c_sanitizers.cpp)
-if(NOT MSVC)
-    target_compile_options(backup_c_sanitizers PRIVATE
-        -fsanitize=address,undefined -fno-omit-frame-pointer -g -O1)
-    target_link_options(backup_c_sanitizers PRIVATE
-        -fsanitize=address,undefined)
-endif()
+# 11b_qt_threading.cpp
+qt_add_executable(11b_qt_threading 11b_qt_threading.cpp)
+target_link_libraries(11b_qt_threading PRIVATE Qt6::Core Qt6::Concurrent)
+set_target_properties(11b_qt_threading PROPERTIES AUTOMOC ON)
 
-# -----------------------------------------------------------------------------
-# Optional: GoogleTest-Beispiel
-# Aktivieren mit: cmake -DBUILD_GTEST=ON
-# -----------------------------------------------------------------------------
-option(BUILD_GTEST "Build GoogleTest example" OFF)
-if(BUILD_GTEST)
-    find_package(GTest REQUIRED)
-    add_executable(12_tests_gtest 12_tests_gtest.cpp)
-    target_link_libraries(12_tests_gtest PRIVATE GTest::gtest GTest::gtest_main)
-    enable_testing()
-    add_test(NAME gtest_example COMMAND 12_tests_gtest)
-endif()
+# 13_tests_qttest.cpp — QtTest-Unit-Tests
+qt_add_executable(13_tests_qttest 13_tests_qttest.cpp)
+target_link_libraries(13_tests_qttest PRIVATE Qt6::Core Qt6::Test)
+set_target_properties(13_tests_qttest PROPERTIES AUTOMOC ON)
 
-# -----------------------------------------------------------------------------
-# Optional: QtTest-Beispiel
-# Aktivieren mit: cmake -DBUILD_QTTEST=ON
-# -----------------------------------------------------------------------------
-option(BUILD_QTTEST "Build QtTest example" OFF)
-if(BUILD_QTTEST)
-    find_package(Qt6 COMPONENTS Core Test REQUIRED)
-    qt_standard_project_setup()
-    add_executable(13_tests_qttest 13_tests_qttest.cpp)
-    target_link_libraries(13_tests_qttest PRIVATE Qt6::Core Qt6::Test)
-    set_target_properties(13_tests_qttest PROPERTIES AUTOMOC ON)
-endif()
+enable_testing()
+add_test(NAME 13_tests_qttest COMMAND 13_tests_qttest)
+
