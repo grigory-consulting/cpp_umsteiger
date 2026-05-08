@@ -18,19 +18,14 @@ set(EXAMPLES
     01_grundlagen
     02_stl_grundlagen
     03_stl_uebung
-    #04_funktionen
+    04_funktionen
     05_vererbung
-    #06_speicher_raii
-    #06b_raii_uebung
+    06_speicher_raii
     07_smart_pointer
-    #07b_smart_pointer_uebung
     08_templates
     09_exceptions
-    #10_modern_cpp
+    10_modern_cpp
     11_multithreading
-    #backup_a_move
-    #backup_b_spezialisierung
-    #backup_d_threading_traps
 )
 
 foreach(example ${EXAMPLES})

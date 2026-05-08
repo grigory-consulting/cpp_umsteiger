@@ -28,7 +28,12 @@
 // Beispiel für Exception-Unsicherheit:
 void exception_unsafe()
 {
-    
+    int* p = new int[100];
+
+    // wenn
+    // may_throw();
+
+    delete[] p; // könnte nicht erreichbar sein
 }
 
 // -----------------------------------------------------------------------------
@@ -40,10 +45,10 @@ void exception_unsafe()
 //
 // File ist ein klassisches RAII-Beispiel: wir verpacken FILE* in ein Objekt.
 
-class File {
+//class File {
 
     
-};
+//};
 
 
 // -----------------------------------------------------------------------------
@@ -73,8 +78,83 @@ class File {
 // Pädagogisch wichtig — in der Praxis würde man std::vector<char> nehmen.
 
 
+class Buffer{
+public:
+    explicit Buffer(std::size_t n)
+        : data_{new char[n]}, size_{n}
+    {
+        std::cout << " Buffer" << n << " konstruiert";
+    }
+
+    // Destruktor
+    ~Buffer()
+    {
+        delete[] data_;
+        std::cout << " Buffer" << " zerstört";
+
+    }
+
+    // Copy-Ctor ... Copy Constructor
+    // Buffer a{8}
+    // Buffer b{a} <- Copy Constructor
+
+    //Buffer(const Buffer& a)
+    //    : data_{new char[a.size_]}, size_{a.size_}
+    //{
+    //    std::copy_n(a.data_, size_, data_);
+    //}
+    Buffer(const Buffer& a) = delete; // Kopieren verboten
+
+    // Copy-Assign
+    // Buffer a{8}
+    // Buffer b{8}
+    // b = a;
+
+    // Buffer& operator=(const Buffer& other){
+    //     if (this != &other) {               // Selbst-Zuweisung abfangen
+    //         char* new_data = new char[other.size_];  // zuerst allokieren …
+    //         std::copy_n(other.data_, other.size_, new_data);
+    //         delete[] data_;                           // … dann alten freigeben
+    //         data_ = new_data;
+    //         size_ = other.size_;
+    //     }
+    //     std::cout << "  Buffer copy-assign\n";
+    //     return *this;
+    // }
+
+    Buffer& operator=(const Buffer& other) = delete;
+
+    // Move-Ctor
+    // Buffer a{8}
+    // Buffer b = std::move(a);
+    Buffer(Buffer&& other) noexcept : data_{other.data_}, size_{other.size_}
+    {
+        other.data_ = nullptr;
+        other.size_ = 0;
+
+    }
+
+
+    // Move-Assign
+    // Buffer a{8}
+    // Buffer b{8}
+    // b  = std::move(a);
+    Buffer& operator=(Buffer&& other) = delete;
+
+private:
+    char* data_ = nullptr;
+    std::size_t size_ = 0;
+};
+
+
+
 // -----------------------------------------------------------------------------
 int main()
 {
+    Buffer a{1024};
+    Buffer b{a};                      // Copy-Ctor
+    Buffer c{std::move(a)};           // Move-Ctor — a ist danach "leer"
+    b = c;                            // Copy-Assign
+    b = std::move(c);                 // Move-Assign
     
 }

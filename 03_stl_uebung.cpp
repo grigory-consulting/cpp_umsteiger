@@ -16,8 +16,18 @@ struct Stats { double min, max, mean, median; };
 
 Stats compute_stats(std::vector<double> temps)  // by value — wir sortieren lokal
 {
-    
+    //auto [min_it, max_it] = std::minmax_element(temps.begin(), temps.end());
+    auto min_it = std::min_element(temps.begin(), temps.end());
+    double min = *min_it;
+    auto max_it = std::min_element(temps.begin(), temps.end());
+    double max = *min_it;
 
+    double mean = std::accumulate(temps.begin(), temps.end(), 0.0) / temps.size();
+
+    auto mid = temps.begin() + temps.size()/2;
+    std::nth_element(temps.begin(),mid, temps.end());
+    double median = *mid;
+    return {min, max, mean, median };
 }
 
 // -----------------------------------------------------------------------------
